@@ -1,10 +1,11 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import RNFS from 'react-native-fs';
 import {
   StyleSheet,
   View,
   TouchableOpacity,
   ActivityIndicator,
+  PermissionsAndroid,
 } from 'react-native';
 import {Text, Banner, Snackbar, IconButton} from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -16,15 +17,43 @@ const Report = () => {
   const [isFetchingStudents, setIsFetchingStudents] = useState(false);
   const [isFetchingAttendance, setIsFetchingAttendance] = useState(false);
   const [showBanner, setShowBanner] = useState(false);
+  const [hasPermission, setHasPermission] = useState(false);
   const [bannerMessage, setBannerMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState(null);
 
+  const requestWritePermission = async () => {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+        {
+          title: 'Attendance Manager Storage Permission',
+          message: 'Attendance Manager needs permission to save excel data',
+          buttonNeutral: 'Ask Me Later',
+          buttonNegative: 'Cancel',
+          buttonPositive: 'OK',
+        },
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        setHasPermission(true);
+      } else {
+        setHasPermission(false);
+      }
+    } catch (err) {
+      setHasPermission(null);
+    }
+  };
+
   const saveToDownloads = async (data, filename) => {
     try {
-      const path = RNFS.DownloadDirectoryPath + `/${filename}.xlsx`;
-      await RNFS.writeFile(path, data, 'base64');
-      setShowBanner(true);
-      setBannerMessage(`File ${filename}.xlsx saved to Downloads directory`);
+      if (hasPermission) {
+        const path = RNFS.DownloadDirectoryPath + `/${filename}.xlsx`;
+        await RNFS.writeFile(path, data, 'base64');
+        setShowBanner(true);
+        setBannerMessage(`File ${filename}.xlsx saved to Downloads directory`);
+      } else {
+        setShowBanner(true);
+        setBannerMessage('Storage permission is denied');
+      }
     } catch (error) {
       setShowBanner(true);
       setBannerMessage(
@@ -86,6 +115,10 @@ const Report = () => {
       getAttendanceData(currentDate);
     }
   };
+
+  useEffect(() => {
+    requestWritePermission();
+  }, []);
 
   return (
     <>

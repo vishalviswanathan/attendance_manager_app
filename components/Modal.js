@@ -116,7 +116,7 @@ const CustomModal = props => {
               }
             />
             <View style={styles.checkbox}>
-              <Text>Is student press today?</Text>
+              <Text>Is student present today?</Text>
               <RadioButton
                 value="Yes"
                 status={studentDetails.attendance ? 'checked' : 'unchecked'}
@@ -141,7 +141,7 @@ const CustomModal = props => {
               <Text>No</Text>
             </View>
             <HelperText type="error" visible={true}>
-              * fields are mandatory
+              Fields marked with * are mandatory
             </HelperText>
             {isFetching && <ActivityIndicator size="large" color="#0000ff" />}
             <View style={styles.buttonGroup}>
